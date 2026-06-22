@@ -34,18 +34,29 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            
+            // Tambahkan Validasi Role di Sini
+            'role' => ['required', 'string', 'in:pengepul,masyarakat'], 
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            
+            // Simpan Peran User ke Database
+            'role' => $request->role, 
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Alihkan otomatis sesuai role setelah daftar sukses
+        return match ($user->role) {
+            'pengepul' => redirect('/pengepul/dashboard'),
+            'masyarakat' => redirect('/masyarakat/dashboard'),
+            default => redirect('/dashboard'),
+        };
     }
 }

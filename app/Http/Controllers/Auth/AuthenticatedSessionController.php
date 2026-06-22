@@ -28,7 +28,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        // Pengalihan cerdas menggunakan Route Name yang sudah kita definisikan di web.php
+        return match ($user->role) {
+            'stakeholder' => redirect()->intended(route('stakeholder.dashboard')),
+            'pengepul'    => redirect()->intended(route('pengepul.dashboard')),
+            'masyarakat'  => redirect()->intended(route('masyarakat.dashboard')),
+            default       => redirect()->intended('/'),
+        };
     }
 
     /**
